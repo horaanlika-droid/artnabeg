@@ -1,5 +1,12 @@
-require('dotenv').config();
+// .env ищем в корне проекта независимо от cwd хостинга (+ опция DOTENV_PATH)
 const path = require('path');
+const fs = require('fs');
+const dotenvPath = process.env.DOTENV_PATH || path.join(__dirname, '..', '.env');
+if (fs.existsSync(dotenvPath)) {
+  require('dotenv').config({ path: dotenvPath });
+} else {
+  require('dotenv').config(); // переменные могут прийти из панели хостинга — это ок
+}
 
 const config = {
   // Telegram
