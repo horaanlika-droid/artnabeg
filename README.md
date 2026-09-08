@@ -101,6 +101,10 @@ npm run seed           # опционально
 npm start              # или pm2 start src/index.js --name artnabeg
 ```
 
+Стартовая команда: `npm start` — либо дефолтная `node http-wrapper.js` (в корне есть файл-совместимость, он запускает то же самое).
+
+Если в логах видишь `◇ injected env (0) from .env` — переменные окружения не подхватились: заполни их в панели хостинга (BOT_TOKEN, ADMIN_ID, PUBLIC_URL, TREASURY_ADDRESS, TON_API_KEY, SESSION_SECRET, ALLOW_DEMO=0) или создай `.env` в папке приложения.
+
 - Открой порт 3000 (или свой `PORT`) и повесь https-домен — Telegram Mini App требует **https**.
 - В BotHost укажи домен лендинга на этот порт: `/` — лендинг, `/app` — мини-апп.
 - `PUBLIC_URL=https://домен` в `.env`, потом перезапусти.
