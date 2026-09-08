@@ -341,6 +341,7 @@ app.get('/api/wallet/status', h(async (req, res) => {
     address: u.wallet_address, verified: !!u.wallet_verified,
     balance: state && state.ok ? state.balance : null,
     network: config.TON_API_BASE.includes('testnet') ? 'testnet' : 'mainnet',
+    treasury: config.TREASURY_ADDRESS || null,
   });
 }));
 
@@ -348,7 +349,8 @@ app.post('/api/wallet/connect', h(async (req, res) => {
   const u = requireUser(req, res); if (!u) return;
   const address = String(req.body.address || '').trim();
   if (!ton.isValidTonAddress(address)) return res.status(400).json({ error: 'неверный формат TON-адреса' });
-  const puzzle = `АРТНАБЕГ :: привязка кошелька :: ${u.id} :: ${crypto.randomBytes(8).toString('hex')}`;
+  // короткий ASCII-пазл — удобно вставлять комментарием в любом TON-кошельке
+  const puzzle = `ANB-WALLET-${u.id}-${crypto.randomBytes(4).toString('hex')}`;
   store.setWalletPuzzle(u.id, puzzle);
   store.setWalletAddress(u.id, address);
   res.json({ ok: true, puzzle });

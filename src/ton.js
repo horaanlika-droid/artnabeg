@@ -70,24 +70,38 @@ async function verifyByTransaction({ address, puzzle }) {
   try {
     if (IS_TONAPI) {
       const d = await apiGet(`/v2/accounts/${encodeURIComponent(config.TREASURY_ADDRESS)}/transactions?limit=50`);
-      const txs = d.transactions || [];
-      for (const tx of txs) {
-        const inMsg = tx.in_msg || {};
-        const src = inMsg.source && inMsg.source.address;
-        if (!src || norm(src) !== norm(address)) continue;
-        const comment = inMsg.decoded_comment || inMsg.comment || inMsg.raw_body || '';
-        if (String(comment).includes(puzzle)) return { verified: true, tx: inMsg.hash || tx.hash };
+      for (const tx of d.transactions || []) {
+        const m = tx.in_msg || {};
+        const src = m.source && m.source.address;
+        if (!src || toRaw(src) !== toRaw(address)) continue;
+        // tonapi: текстовый комментарий -> decoded_op_name="text_comment", decoded_body={text}
+        const comment = m.decoded_op_name === 'text_comment'
+          ? (m.decoded_body && m.decoded_body.text) || ''
+          : (m.comment || m.decoded_comment || '');
+        if (String(comment).includes(puzzle)) return { verified: true, tx: m.hash || tx.hash };
       }
       return { verified: false, error: 'перевод пока не найден в блокчейне' };
     }
-    // toncenter: без tx-индекса — не поддерживаем, нужен tonapi
     return { verified: false, error: 'для подтверждения переводом укажи TON_API_BASE=https://tonapi.io' };
   } catch (e) {
     return { verified: false, error: e.message };
   }
 }
 
-function norm(a) { return String(a || '').toUpperCase().replace(/^0:/, '-0:'); }
+// нормализация адреса к raw-виду "0:hex64" / "-1:hex64" (понимает EQ/UQ и raw)
+function toRaw(addr) {
+  const s = String(addr || '').trim();
+  if (/^-?\d+:[0-9a-fA-F]{64}$/.test(s)) return s.toUpperCase();
+  if (/^[EU]Q[A-Za-z0-9_-]{46}$/.test(s)) {
+    try {
+      const buf = Buffer.from(s, 'base64url');      // все 48 символов = 36 байт
+      if (buf.length !== 36) return s.toUpperCase();
+      const prefix = (buf[0] & 0x80) ? '-1:' : '0:';
+      return prefix + buf.slice(2).toString('hex').toUpperCase();
+    } catch { return s.toUpperCase(); }
+  }
+  return s.toUpperCase();
+}
 
 // Попытка серверной проверки подписи (если провайдер умеет)
 async function verifySignature({ address, message, signature }) {

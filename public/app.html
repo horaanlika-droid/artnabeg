@@ -648,9 +648,11 @@ async function vWallet(view){
       <input id="w-addr" class="mono" placeholder="UQ…" value="${esc(st.address||'')}">
       <button class="btn btn-p" id="w-connect">Привязать адрес</button>
       <div id="w-step2" style="display:none">
-        <div class="label">Код-фраза</div>
+        <div class="label">Шаг 1 — код-фраза</div>
         <div class="panel mono" id="w-puzzle"></div>
-        <button class="btn btn-p" id="w-verify-tx">Я отправил перевод — проверить</button>
+        ${st.treasury?`<div class="label">Шаг 2 — отправь любой перевод (даже 0.01 TON) на адрес площадки с этой фразой в комментарии</div>
+        <div class="panel mono" style="color:#cfc8b8">${esc(st.treasury)}</div>`:''}
+        <button class="btn btn-p" id="w-verify-tx">Я отправил перевод — проверить через блокчейн</button>
         <div class="label">…или подпись из кошелька</div>
         <input id="w-sig" placeholder="подпись сообщения">
         <button class="btn btn-s" id="w-verify">Подтвердить подписью</button>
