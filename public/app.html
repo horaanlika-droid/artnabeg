@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>АРТНАБЕГ — галерея</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230c0c0c'/%3E%3Ctext x='16' y='23' font-size='18' font-family='Arial Black' font-weight='900' fill='%23f2f0eb' text-anchor='middle'%3EА%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{
+  --bg:#0c0c0c; --panel:#131313; --card:#171717; --card2:#1c1c1c;
+  --line:#242423; --text:#f2f0eb; --muted:#8d8a83; --muted2:#5c5a55;
+  --ok:#7fbf7f; --warn:#d9b36a; --err:#d97a6a;
+  --radius:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:'Manrope',-apple-system,'Segoe UI',sans-serif;
+  font-size:15px; line-height:1.45; overflow:hidden;
+}
+#app{height:100%; display:flex; flex-direction:column}
+.view{flex:1; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; padding-bottom:90px}
+.view::-webkit-scrollbar{display:none}
+h1,h2,h3,.logo-font{font-family:'Unbounded','Manrope',sans-serif}
+
+/* ---------- top ---------- */
+.top{position:sticky;top:0;z-index:20;background:rgba(12,12,12,.92);backdrop-filter:blur(12px);
+  padding:14px 16px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}
+.logo-font{font-weight:800;letter-spacing:.5px;font-size:17px}
+.logo-font small{display:block;font-family:'Manrope';font-weight:500;font-size:9px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;margin-top:2px}
+.top .ico{width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:var(--panel);
+  display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text);cursor:pointer}
+
+/* ---------- chips ---------- */
+.chips{display:flex;gap:8px;overflow-x:auto;padding:12px 16px 4px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;padding:8px 14px;border-radius:100px;border:1px solid var(--line);background:var(--panel);
+  color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.chip.on{background:var(--text);color:#0c0c0c;border-color:var(--text)}
+
+/* ---------- cards ---------- */
+.wrap{padding:12px 16px}
+.hero{position:relative;border-radius:20px;overflow:hidden;border:1px solid var(--line);margin-bottom:20px;cursor:pointer}
+.hero img{width:100%;height:240px;object-fit:cover;display:block;filter:grayscale(.2)}
+.hero .cap{position:absolute;left:0;right:0;bottom:0;padding:40px 16px 14px;
+  background:linear-gradient(transparent,rgba(0,0,0,.9))}
+.hero .tag{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.hero .t{font-family:'Unbounded';font-weight:600;font-size:18px}
+.hero .p{color:var(--muted);font-size:13px;margin-top:2px}
+.sec{display:flex;justify-content:space-between;align-items:baseline;margin:22px 0 12px}
+.sec h3{font-size:15px;font-weight:600}
+.sec a{color:var(--muted);font-size:13px;text-decoration:none;cursor:pointer}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:transform .15s}
+.card:active{transform:scale(.97)}
+.card img{width:100%;aspect-ratio:1;object-fit:cover;display:block;filter:grayscale(.15)}
+.card .in{padding:10px 12px 12px}
+.card .t{font-weight:600;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .a{color:var(--muted);font-size:12px;margin-top:1px}
+.card .p{font-size:13px;font-weight:700;margin-top:6px}
+.card .p small{color:var(--muted);font-weight:500}
+.badges{position:absolute;display:flex;gap:6px}
+.type-tag{position:absolute;top:10px;left:10px;font-size:10px;font-weight:700;letter-spacing:.08em;padding:4px 8px;border-radius:8px;
+  background:rgba(12,12,12,.75);backdrop-filter:blur(4px);text-transform:uppercase}
+.type-tag.phys{color:#e8c88a}
+.type-tag.nft{color:#9ad0ff}
+.sold{position:absolute;top:10px;right:10px;font-size:10px;font-weight:700;padding:4px 8px;border-radius:8px;background:rgba(12,12,12,.75);color:var(--muted)}
+
+/* ---------- detail ---------- */
+.dimg{width:100%;max-height:420px;object-fit:contain;background:#000;display:block;border-bottom:1px solid var(--line)}
+.dwrap{padding:16px}
+.dtitle{font-family:'Unbounded';font-size:20px;font-weight:600;line-height:1.2}
+.dartist{display:flex;align-items:center;gap:10px;margin:12px 0;cursor:pointer}
+.dartist img{width:38px;height:38px;border-radius:50%;object-fit:cover;background:var(--card2)}
+.dartist .n{font-weight:600}
+.dartist .v{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:4px}
+.dartist .v svg{flex:none}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:12px;border:1px solid var(--line);border-radius:var(--radius);padding:14px;background:var(--panel);margin:14px 0}
+.kv .k{font-size:11px;color:var(--muted);margin-bottom:3px}
+.kv .v{font-weight:600;font-size:14px}
+.price-big{font-family:'Unbounded';font-size:22px;font-weight:600}
+.price-usd{color:var(--muted);font-size:13px;margin-top:2px}
+.escrow-note{border:1px solid #2c2a22;background:#171613;border-radius:var(--radius);padding:12px 14px;font-size:12.5px;color:#cfc8b8;margin:14px 0;display:flex;gap:10px}
+.btn{display:flex;align-items:center;justify-content:center;width:100%;padding:15px;border-radius:14px;border:none;cursor:pointer;
+  font-family:'Manrope';font-size:15px;font-weight:700;margin-top:10px;transition:opacity .15s}
+.btn:active{opacity:.7}
+.btn-p{background:var(--text);color:#0c0c0c}
+.btn-s{background:transparent;color:var(--text);border:1px solid var(--line)}
+.btn[disabled]{opacity:.4;pointer-events:none}
+.desc{color:#c9c6bf;font-size:14px;margin:14px 0;line-height:1.55}
+.meta-line{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 16px}
+.meta-pill{font-size:11px;color:var(--muted);border:1px solid var(--line);padding:4px 10px;border-radius:100px}
+
+/* ---------- profile / forms ---------- */
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px}
+.avatar-lg{width:84px;height:84px;border-radius:50%;object-fit:cover;border:2px solid var(--line);background:var(--card2)}
+.p-name{font-family:'Unbounded';font-size:18px;font-weight:600;margin-top:10px}
+.p-sub{color:var(--muted);font-size:13px;margin-top:2px}
+.stat3{display:flex;border-top:1px solid var(--line);margin-top:14px;padding-top:12px}
+.stat3>div{flex:1;text-align:center}
+.stat3 b{display:block;font-size:16px}
+.stat3 span{font-size:11px;color:var(--muted)}
+.label{font-size:12px;color:var(--muted);font-weight:600;margin:14px 0 6px}
+input,textarea,select{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:12px;color:var(--text);
+  padding:13px 14px;font-family:'Manrope';font-size:15px;outline:none}
+input:focus,textarea:focus{border-color:#3a3a38}
+textarea{resize:vertical;min-height:90px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.file-drop{border:1.5px dashed var(--line);border-radius:var(--radius);padding:26px 16px;text-align:center;color:var(--muted);
+  font-size:13px;cursor:pointer;background:var(--panel)}
+.file-drop img{max-height:180px;border-radius:10px;margin-bottom:8px}
+.mono{font-family:ui-monospace,Menlo,monospace;font-size:12px;word-break:break-all}
+
+/* ---------- orders / support ---------- */
+.order{border:1px solid var(--line);border-radius:var(--radius);background:var(--card);padding:14px;margin-bottom:12px}
+.order .hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.o-id{font-size:12px;color:var(--muted);font-weight:700}
+.st{font-size:11px;font-weight:700;padding:4px 10px;border-radius:100px;letter-spacing:.04em}
+.st.created{background:#2a2a28;color:var(--muted)}
+.st.paid{background:#2c2418;color:var(--warn)}
+.st.shipped{background:#1a2630;color:#8fc1e8}
+.st.completed{background:#16241a;color:var(--ok)}
+.st.cancelled,.st.refunded{background:#241717;color:var(--err)}
+.order .row{display:flex;gap:10px;align-items:center;margin-bottom:8px}
+.order .row img{width:46px;height:46px;border-radius:10px;object-fit:cover}
+.order .t{font-weight:600;font-size:14px}
+.order .s{color:var(--muted);font-size:12px}
+.stepper{display:flex;align-items:center;gap:0;margin:10px 0 4px;font-size:10px;color:var(--muted)}
+.step{flex:1;text-align:center;position:relative}
+.step::before{content:'';position:absolute;top:5px;left:-50%;width:100%;height:1px;background:var(--line)}
+.step:first-child::before{display:none}
+.step .dot{width:11px;height:11px;border-radius:50%;background:var(--line);margin:0 auto 5px;position:relative;z-index:1}
+.step.done .dot{background:var(--text)}
+.step.done{color:var(--text)}
+.chat{display:flex;flex-direction:column;gap:8px;padding:14px 16px}
+.msg{max-width:82%;padding:10px 13px;border-radius:16px;font-size:14px;white-space:pre-wrap;word-break:break-word}
+.msg.user{align-self:flex-end;background:var(--text);color:#0c0c0c;border-bottom-right-radius:4px}
+.msg.admin{align-self:flex-start;background:var(--card2);border:1px solid var(--line);border-bottom-left-radius:4px}
+.msg .tm{font-size:10px;opacity:.55;margin-top:4px}
+.msg.sys{align-self:center;background:transparent;color:var(--muted);font-size:11px}
+
+/* ---------- admin ---------- */
+.tabs{display:flex;gap:8px;padding:12px 16px}
+.tab{flex:1;text-align:center;padding:9px 4px;border-radius:12px;border:1px solid var(--line);font-size:12.5px;font-weight:600;color:var(--muted);cursor:pointer}
+.tab.on{background:var(--text);color:#0c0c0c;border-color:var(--text)}
+.mod-card{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--card);margin-bottom:14px}
+.mod-card img{width:100%;height:180px;object-fit:cover;display:block}
+.mod-card .in{padding:12px 14px}
+.mod-card .t{font-weight:700}
+.mod-card .a{color:var(--muted);font-size:12.5px;margin:2px 0 8px}
+.btnrow{display:flex;gap:8px;margin-top:10px}
+.btnrow .btn{margin-top:0;font-size:13.5px;padding:12px}
+.statgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.statgrid .panel{margin:0;text-align:center}
+.statgrid b{font-size:20px;font-family:'Unbounded';display:block}
+.statgrid span{font-size:11px;color:var(--muted)}
+
+/* ---------- nav ---------- */
+.nav{position:fixed;bottom:0;left:0;right:0;z-index:30;display:flex;background:rgba(15,15,15,.96);backdrop-filter:blur(14px);
+  border-top:1px solid var(--line);padding:8px 6px calc(8px + env(safe-area-inset-bottom))}
+.nav a{flex:1;text-align:center;color:var(--muted2);text-decoration:none;font-size:9.5px;font-weight:600;cursor:pointer;padding:4px 0}
+.nav a svg{display:block;margin:0 auto 3px;width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.7}
+.nav a.on{color:var(--text)}
+.nav a.mid svg{width:26px;height:26px;border:1.5px solid currentColor;border-radius:9px;stroke-width:2}
+
+/* ---------- misc ---------- */
+.login{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center}
+.login .big{font-family:'Unbounded';font-size:26px;font-weight:800;letter-spacing:1px}
+.empty{text-align:center;color:var(--muted);padding:60px 30px;font-size:14px}
+.empty .e{font-size:34px;margin-bottom:12px;opacity:.6}
+.toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:#242422;border:1px solid #383836;color:var(--text);
+  padding:11px 18px;border-radius:100px;font-size:13px;z-index:99;animation:tin .25s;max-width:86%;text-align:center}
+@keyframes tin{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
+.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:40;display:flex;align-items:flex-end;animation:fin .2s}
+@keyframes fin{from{opacity:0}to{opacity:1}}
+.sheet{background:var(--panel);border-radius:22px 22px 0 0;width:100%;padding:20px 18px calc(20px + env(safe-area-inset-bottom));animation:sup .25s}
+@keyframes sup{from{transform:translateY(40px);opacity:.5}to{transform:none;opacity:1}}
+.sheet h3{font-size:16px;margin-bottom:12px}
+.back-head{position:sticky;top:0;z-index:20;background:rgba(12,12,12,.92);backdrop-filter:blur(12px);display:flex;align-items:center;gap:12px;
+  padding:12px 16px;border-bottom:1px solid var(--line)}
+.back-head .ico{width:36px;height:36px;border-radius:11px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px}
+.back-head .tt{font-weight:700;font-size:15px}
+.feat-strip{display:flex;gap:10px;overflow-x:auto;padding:2px 0 6px;scrollbar-width:none}
+.feat-strip::-webkit-scrollbar{display:none}
+.mini-card{flex:none;width:120px}
+.mini-card img{width:120px;height:150px;object-fit:cover;border-radius:12px;border:1px solid var(--line);filter:grayscale(.15)}
+.mini-card .t{font-size:11.5px;font-weight:600;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini-card .p{font-size:11px;color:var(--muted)}
+.spin{width:22px;height:22px;border:2px solid var(--line);border-top-color:var(--text);border-radius:50%;animation:sp 1s linear infinite;margin:60px auto}
+@keyframes sp{to{transform:rotate(360deg)}}
+.searchbar{padding:12px 16px 0}
+.searchbar input{border-radius:100px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="nav"></div>
+
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const API = '';
+let ME = null, CFG = { commission: 8, demo: true, payments: false }, TON_USD = null;
+let routeCache = {};
+
+const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor('#0c0c0c'); tg.setBackgroundColor('#0c0c0c'); } catch(e){} }
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmtTon(m){ return (m/1000).toFixed(2); }
+function fmtUsd(m){ return TON_USD ? '≈ $' + Math.round(m/1000*TON_USD).toLocaleString('ru-RU') : ''; }
+function tmStr(t){ return new Date(t).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}); }
+
+async function api(path, opts={}){
+  const o = { headers:{}, credentials:'same-origin', ...opts };
+  if (o.body && !(o.body instanceof FormData)) { o.headers['Content-Type']='application/json'; o.body = JSON.stringify(o.body); }
+  const r = await fetch(API+path, o);
+  if (r.status === 401) return { __auth:false };
+  const j = await r.json().catch(()=>({}));
+  if (!r.ok) throw new Error(j.error || 'Ошибка сервера');
+  return j;
+}
+function toast(t){ const d=document.createElement('div'); d.className='toast'; d.textContent=t; document.body.appendChild(d); setTimeout(()=>d.remove(), 2600); }
+
+/* ============ INIT ============ */
+(async function init(){
+  const me0 = await api('/api/me');
+  if (me0.user) { ME = me0.user; ME._admin = me0.is_admin; }
+  CFG = await api('/api/config');
+  if (!ME && tg && tg.initData && tg.initData.length > 10) {
+    try {
+      const r = await api('/api/auth/telegram', { method:'POST', body:{ initData: tg.initData } });
+      ME = r.user; ME._admin = r.is_admin;
+    } catch(e){ console.warn('tg auth', e); }
+  }
+  try { const p = await api('/api/ton/price'); TON_USD = p.usd; } catch(e){}
+  if (!ME) return renderLogin();
+  renderNav(); navigate(location.hash || '#/');
+})();
+
+function renderLogin(){
+  $('#app').innerHTML = `
+  <div class="login">
+    <div class="big">АРТНАБЕГ</div>
+    <div style="color:var(--muted);margin:10px 0 26px">Искусство вне стен. Теперь on-chain.</div>
+    <button class="btn btn-p" style="max-width:280px" id="btn-tg-login">Войти через Telegram</button>
+    ${CFG.demo ? '<button class="btn btn-s" style="max-width:280px" id="btn-demo-login">Демо-вход (для теста)</button>' : ''}
+    <div style="color:var(--muted2);font-size:12px;margin-top:24px;max-width:300px">Открой мини-апп через бота — вход выполнится автоматически по твоему Telegram-аккаунту.</div>
+  </div>`;
+  $('#btn-tg-login').onclick = () => {
+    if (tg && tg.initData && tg.initData.length) return location.reload();
+    toast('Открой мини-апп через бота @артнабег — тогда вход сработает автоматически');
+  };
+  if (CFG.demo) $('#btn-demo-login').onclick = async () => {
+    const r = await api('/api/auth/dev', { method:'POST', body:{} });
+    ME = r.user; ME._admin = r.is_admin; renderNav(); navigate('#/');
+  };
+}
+
+/* ============ NAV ============ */
+const NAV = [
+  { id:'/',        label:'Главная',  icon:'<path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1z"/>' },
+  { id:'#/artists',label:'NFT',      icon:'<rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5-11 11"/>' },
+  { id:'#/upload', label:'',         icon:'<path d="M12 5v14M5 12h14"/>' },
+  { id:'#/orders', label:'Заказы',   icon:'<path d="M6 7h12l1 13H5zM9 7a3 3 0 0 1 6 0"/>' },
+  { id:'#/profile',label:'Профиль',  icon:'<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/>' },
+];
+function renderNav(){
+  $('#nav').innerHTML = `<div class="nav">` + NAV.map(n =>
+    `<a data-r="${n.id}" class="${n.mid?'mid':''}">${`<svg viewBox="0 0 24 24">${n.icon}</svg>`}<span>${n.label}</span></a>`).join('') + `</div>`;
+  document.querySelectorAll('.nav a').forEach(a => a.onclick = () => navigate(a.dataset.r));
+}
+function markNav(hash){
+  document.querySelectorAll('.nav a').forEach(a => a.classList.toggle('on', a.dataset.r === hash));
+}
+
+/* ============ ROUTER ============ */
+const routes = {
+  '#/':        vGallery,
+  '#/artists': vNftGallery,
+  '#/upload':  vUpload,
+  '#/orders':  vOrders,
+  '#/profile': vProfile,
+  '#/support': vSupport,
+  '#/wallet':  vWallet,
+  '#/admin':   vAdmin,
+};
+function navigate(hash){
+  if (!ME) return renderLogin();
+  location.hash = hash;
+  markNav(hash.split('/').slice(0,2).join('/') === '#/art' ? '#/' : (routes[hash] ? hash : (hash.startsWith('#/art')||hash.startsWith('#/artist') ? '#/' : hash)));
+  const base = hash.startsWith('#/art/') ? '#/art' : (hash.startsWith('#/artist/') ? '#/artist' : hash);
+  const fn = routes[base] || (base === '#/art' ? vArt : base === '#/artist' ? vArtist : null);
+  if (!fn) return vGallery();
+  const app = $('#app');
+  app.innerHTML = `<div class="view"><div class="spin"></div></div>`;
+  window.scrollTo(0,0);
+  fn(app.firstChild);
+  if (tg && tg.BackButton) { hash === '#/' ? tg.BackButton.hide() : tg.BackButton.show(); }
+}
+if (tg && tg.BackButton) tg.BackButton.onClick(() => history.back());
+window.addEventListener('hashchange', () => { if (ME) navigate(location.hash || '#/'); });
+
+/* ============ GALLERY ============ */
+let galFilter = { art_type:'', category:'all', sort:'', q:'' };
+async function vGallery(view){
+  view.innerHTML = `
+    <div class="top">
+      <div class="logo-font">АРТНАБЕГ<small>NFT-галерея андеграунда</small></div>
+      <div class="ico" onclick="navigate('#/support')">✉️</div>
+    </div>
+    <div class="searchbar"><input id="gq" placeholder="Поиск работ и художников…"></div>
+    <div class="chips" id="chips-type">
+      <div class="chip on" data-v="">Все</div>
+      <div class="chip" data-v="digital">NFT</div>
+      <div class="chip" data-v="physical">Физические</div>
+    </div>
+    <div class="chips" style="padding-top:6px" id="chips-cat">
+      <div class="chip on" data-v="all">Все</div>
+      <div class="chip" data-v="art">Арт</div>
+      <div class="chip" data-v="photo">Фото</div>
+      <div class="chip" data-v="graphics">Графика</div>
+      <div class="chip" data-v="painting">Живопись</div>
+      <div class="chip" data-v="street">Стрит</div>
+    </div>
+    <div class="wrap"><div class="spin"></div></div>`;
+  bindChips(view, 'chips-type', 'art_type'); bindChips(view, 'chips-cat', 'category');
+  let t; $('#gq').oninput = e => { clearTimeout(t); t = setTimeout(()=>{ galFilter.q = e.target.value.trim(); loadGallery(view); }, 350); };
+  await loadGallery(view);
+}
+function bindChips(view, id, key){
+  view.querySelectorAll('#'+id+' .chip').forEach(ch => ch.onclick = () => {
+    view.querySelectorAll('#'+id+' .chip').forEach(c=>c.classList.remove('on'));
+    ch.classList.add('on'); galFilter[key] = ch.dataset.v; loadGallery(view);
+  });
+}
+async function loadGallery(view){
+  const wrap = view.querySelector('.wrap');
+  const p = new URLSearchParams();
+  if (galFilter.art_type) p.set('art_type', galFilter.art_type);
+  if (galFilter.category !== 'all') p.set('category', galFilter.category);
+  if (galFilter.q) p.set('q', galFilter.q);
+  const r = await api('/api/artworks?' + p).catch(()=>({items:[]}));
+  const items = r.items || [];
+  if (!items.length) { wrap.innerHTML = `<div class="empty"><div class="e">████</div>Пока пусто. Скоро здесь появятся работы.</div>`; return; }
+  const feat = items[0];
+  wrap.innerHTML = `
+    ${heroCard(feat)}
+    <div class="sec"><h3>Лента</h3><a onclick="galFilter.sort = galFilter.sort==='cheap'?'':'cheap'; loadGallery(view_)">${galFilter.sort==='cheap'?'сначала дорогие ↑':'сначала новые ↓'}</a></div>
+    <div class="grid">${items.map(cardHtml).join('')}</div>`;
+  window.view_ = view;
+  bindCards(wrap);
+}
+function heroCard(a){
+  if (!a) return '';
+  return `<div class="hero" onclick="navigate('#/art/${a.id}')">
+    <img src="${esc(a.image_path)}" loading="lazy">
+    <div class="cap"><div class="tag">Featured</div><div class="t">${esc(a.title)}</div>
+    <div class="p">${esc(a.artist_name||'')} · ${fmtTon(a.price_milli)} TON</div></div></div>`;
+}
+function cardHtml(a){
+  return `<div class="card" data-id="${a.id}">
+    <div style="position:relative">
+      <img src="${esc(a.image_path)}" loading="lazy">
+      <span class="type-tag ${a.art_type==='physical'?'phys':'nft'}">${a.art_type==='physical'?'Физическая':'NFT'}</span>
+      ${a.is_sold?'<span class="sold">ПРОДАНО</span>':''}
+    </div>
+    <div class="in"><div class="t">${esc(a.title)}</div><div class="a">${esc(a.artist_name||'')}</div>
+    <div class="p">${fmtTon(a.price_milli)} TON <small>${fmtUsd(a.price_milli)}</small></div></div></div>`;
+}
+function bindCards(root){ root.querySelectorAll('.card').forEach(c => c.onclick = () => navigate('#/art/'+c.dataset.id)); }
+
+/* ============ NFT GALLERY (view 2) ============ */
+async function vNftGallery(view){
+  view.innerHTML = `
+    <div class="top"><div class="logo-font">NFT / ON-CHAIN<small>токены и оригиналы</small></div></div>
+    <div class="wrap"><div class="spin"></div></div>`;
+  const r = await api('/api/artworks?art_type=digital').catch(()=>({items:[]}));
+  const mine = ME ? await api('/api/nfts/mine').catch(()=>({items:[]})) : {items:[]};
+  view.querySelector('.wrap').innerHTML = `
+    ${(mine.items||[]).length ? `<div class="sec"><h3>Мои NFT</h3></div>
+    <div class="grid">${mine.items.map(n=>cardHtml({id:n.artwork_id,title:n.title,image_path:n.image_path,price_milli:n.price_milli,artist_name:'',art_type:'digital',is_sold:0})).join('')}</div>`:''}
+    <div class="sec"><h3>В галерее</h3></div>
+    ${r.items.length?`<div class="grid">${r.items.map(cardHtml).join('')}</div>`:`<div class="empty"><div class="e">◇</div>NFT пока нет</div>`}`;
+  bindCards(view);
+}
+
+/* ============ ART DETAIL ============ */
+async function vArt(view, id){
+  const m = location.hash.match(/#\/art\/(\d+)/); const aid = id || (m && m[1]);
+  let data;
+  try { data = await api('/api/artworks/' + aid); } catch(e){ view.innerHTML = `<div class="empty"><div class="e">404</div>Работа не найдена</div>`; return; }
+  const a = data.artwork, nft = data.nft;
+  const isOwner = ME && ME.id === a.artist_id;
+  const mine = nft && ME && nft.owner_id === ME.id;
+  view.innerHTML = `
+    <div class="back-head"><div class="ico" onclick="history.back()">←</div>
+      <div class="tt">${a.art_type==='physical'?'Физическая работа':'NFT'}</div>
+      <div style="flex:1"></div>
+      <div class="ico" onclick="shareArt(${a.id})">↗</div></div>
+    <img class="dimg" src="${esc(a.image_path)}">
+    <div class="dwrap">
+      <div class="dtitle">${esc(a.title)}</div>
+      ${a.status!=='approved'?`<div style="margin-top:8px"><span class="st ${a.status==='pending'?'created':'cancelled'}">${a.status==='pending'?'⏳ на модерации':'❌ отклонено: '+esc(a.reject_reason||'')}</span></div>`:''}
+      <div class="dartist" onclick="navigate('#/artist/${a.artist_id}')">
+        <img src="${esc(a.artist_photo||'')}" onerror="this.style.visibility='hidden'">
+        <div><div class="n">${esc(a.artist_name||a.artist_username||'')}</div>
+        <div class="v"><svg width="12" height="12" viewBox="0 0 24 24" fill="#5b8def"><path d="M12 2l2.4 2.1 3.2-.4 1 3 2.9 1.3-.7 3.1L23 13l-2.2 2 .7 3.1-2.9 1.3-1 3-3.2-.4L12 24l-2.4-2.1-3.2.4-1-3L2.5 18l.7-3.1L1 13l2.2-2L2.5 7.9l2.9-1.3 1-3 3.2.4z"/><path d="M9 12l2 2 4-4" stroke="#0c0c0c" stroke-width="2" fill="none"/></svg> Проверенный художник</div></div>
+      </div>
+      <div class="price-big">${fmtTon(a.price_milli)} TON <span style="font-size:12px;color:var(--muted);font-family:Manrope">${fmtUsd(a.price_milli)}</span></div>
+      <div class="meta-line">
+        <span class="meta-pill">${a.art_type==='physical'?'📦 физический оригинал':'◆ NFT / TON'}</span>
+        ${a.medium?`<span class="meta-pill">${esc(a.medium)}</span>`:''}
+        ${a.year?`<span class="meta-pill">${a.year}</span>`:''}
+        ${a.location?`<span class="meta-pill">📍 ${esc(a.location)}</span>`:''}
+      </div>
+      ${nft?`<div class="kv">
+        <div><div class="k">Токен</div><div class="v mono">${esc(nft.token_str)}</div></div>
+        <div><div class="k">Сеть</div><div class="v">The Open Network</div></div>
+        <div><div class="k">Владелец</div><div class="v">${mine?'ты':(nft.owner_id===a.artist_id?'художник':'коллекционер')}</div></div>
+        <div><div class="k">Стандарт</div><div class="v">TON NFT</div></div></div>`:''}
+      ${a.art_type==='physical'?`<div class="escrow-note"><span>🛡</span><span><b>Гарант сделки.</b> Деньги замораживаются на площадке, продавец отправляет работу, ты подтверждаешь получение — только потом продавец получает выплату (за вычетом комиссии ${CFG.commission}%).</span></div>`:
+      `<div class="escrow-note"><span>◆</span><span><b>Покупка NFT.</b> После оплаты токен закрепляется за тобой, комиссия площадки — ${CFG.commission}%.</span></div>`}
+      <div class="desc">${esc(a.description||'')}</div>
+      <div class="sec"><h3>Описание</h3></div>
+      <div style="color:var(--muted);font-size:13px">${esc(a.artist_bio||'Художник АРТНАБЕГ')}${a.artist_city?' · '+esc(a.artist_city):''}</div>
+      ${a.is_sold?`<button class="btn btn-s" disabled>Продано</button>`:
+        isOwner?`<button class="btn btn-s" disabled>Твоя работа · статус: ${a.status==='approved'?'в галерее':'на модерации'}</button>`:
+        mine?`<button class="btn btn-s" disabled>NFT у тебя</button>`:
+        ME?`<button class="btn btn-p" id="buy">Купить · ${fmtTon(a.price_milli)} TON</button><button class="btn btn-s" onclick="navigate('#/support')">Вопрос продавцу — через поддержку</button>`:
+        `<button class="btn btn-p" onclick="renderLogin()">Войти, чтобы купить</button>`}
+    </div>`;
+  const buy = view.querySelector('#buy');
+  if (buy) buy.onclick = () => buySheet(a);
+}
+function shareArt(id){
+  const url = location.origin + location.pathname + '#/art/' + id;
+  if (tg && tg.openTelegramLink) { /* внутри тг */ }
+  navigator.clipboard && navigator.clipboard.writeText(url).then(()=>toast('Ссылка скопирована'));
+}
+function buySheet(a){
+  const isPhys = a.art_type === 'physical';
+  const bg = document.createElement('div'); bg.className = 'sheet-bg';
+  bg.innerHTML = `<div class="sheet">
+    <h3>${isPhys?'Покупка физической работы':'Покупка NFT'}</h3>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:10px">«${esc(a.title)}» · ${esc(a.artist_name||'')}</div>
+    ${isPhys?`<div class="escrow-note"><span>🛡</span><span>Оплата уходит в <b>гаранта площадки</b>: деньги заморожены, пока не подтвердишь получение работы.</span></div>`:''}
+    <div class="kv" style="margin:8px 0">
+      <div><div class="k">Цена</div><div class="v">${fmtTon(a.price_milli)} TON</div></div>
+      <div><div class="k">Комиссия площадки ${CFG.commission}%</div><div class="v">${fmtTon(Math.round(a.price_milli*CFG.commission/100))} TON</div></div>
+    </div>
+    ${isPhys?`<div class="label">Адрес доставки</div><input id="dlv" placeholder="Город, улица, дом, получатель">`:''}
+    <button class="btn btn-p" id="pay">${CFG.payments?'Оплатить в TON':'Оплатить (демо)'}</button>
+    <button class="btn btn-s" id="cls">Отмена</button>
+  </div>`;
+  document.body.appendChild(bg);
+  bg.querySelector('#cls').onclick = () => bg.remove();
+  bg.onclick = e => { if (e.target === bg) bg.remove(); };
+  bg.querySelector('#pay').onclick = async () => {
+    try {
+      const r = await api('/api/orders', { method:'POST', body:{ artwork_id: a.id } });
+      if (r.pay_url && tg && tg.openLink) { tg.openLink(r.pay_url); toast('Счёт открыт — оплати в TON'); }
+      else if (r.pay_url) { location.href = r.pay_url; }
+      else if (r.demo) {
+        await api(`/api/orders/${r.order.id}/pay-demo`, { method:'POST', body:{} });
+        toast(isPhys ? 'Оплата (демо): средства заморожены в гаранте 🛡' : 'Оплата (демо): NFT твой ◆');
+      }
+      bg.remove(); navigate('#/orders');
+    } catch(e){ toast(e.message); }
+  };
+}
+
+/* ============ ARTIST ============ */
+async function vArtist(view){
+  const m = location.hash.match(/#\/artist\/(\d+)/); const aid = m && m[1];
+  let d; try { d = await api('/api/artists/' + aid); } catch(e){ view.innerHTML=`<div class="empty">Художник не найден</div>`; return; }
+  const a = d.artist;
+  view.innerHTML = `
+    <div class="back-head"><div class="ico" onclick="history.back()">←</div><div class="tt">Художник</div></div>
+    <div class="wrap" style="text-align:center;padding-top:26px">
+      <img class="avatar-lg" src="${esc(a.photo_url||'')}" onerror="this.style.opacity=.15">
+      <div class="p-name">${esc(a.artist_name)}</div>
+      <div class="p-sub">${a.username?'@'+esc(a.username)+' · ':''}${esc(a.artist_city||'')}</div>
+      <div style="color:#c9c6bf;font-size:13.5px;margin:12px auto 0;max-width:340px">${esc(a.artist_bio||'')}</div>
+    </div>
+    <div class="wrap"><div class="sec"><h3>Работы · ${d.works.length}</h3></div>
+    ${d.works.length?`<div class="grid">${d.works.map(cardHtml).join('')}</div>`:`<div class="empty">Работ пока нет</div>`}</div>`;
+  bindCards(view);
+}
+
+/* ============ UPLOAD ============ */
+let upImage = null;
+function vUpload(view){
+  upImage = null;
+  view.innerHTML = `
+    <div class="back-head"><div class="ico" onclick="history.back()">←</div><div class="tt">Выложить работу</div></div>
+    <div class="wrap">
+      <div class="escrow-note"><span>⏳</span><span><b>Публикация — через модерацию.</b> Куратор проверит работу, обычно это быстро. Отклонённые можно исправить и выложить снова.</span></div>
+      <div class="file-drop" id="drop">📂<br>Нажми, чтобы выбрать фото работы<br><small style="color:var(--muted2)">JPG / PNG / WEBP до 10 МБ</small></div>
+      <input type="file" id="file" accept="image/*" hidden>
+      <div class="label">Название *</div><input id="f-title" placeholder="not here">
+      <div class="label">Описание</div><textarea id="f-desc" placeholder="О чём работа, как создавалась…"></textarea>
+      <div class="row2">
+        <div><div class="label">Тип</div>
+          <div class="chips" style="padding:0" id="f-type">
+            <div class="chip on" data-v="digital">NFT / цифра</div>
+            <div class="chip" data-v="physical">Физическая</div>
+          </div></div>
+        <div><div class="label">Категория</div>
+          <div class="chips" style="padding:0" id="f-cat">
+            <div class="chip on" data-v="art">Арт</div><div class="chip" data-v="photo">Фото</div>
+            <div class="chip" data-v="graphics">Графика</div><div class="chip" data-v="painting">Живопись</div>
+          </div></div>
+      </div>
+      <div id="phys-extra" style="display:none">
+        <div class="row2">
+          <div><div class="label">Материал</div><input id="f-medium" placeholder="холст, акрил"></div>
+          <div><div class="label">Где работа</div><input id="f-loc" placeholder="Санкт-Петербург"></div>
+        </div>
+      </div>
+      <div class="row2">
+        <div><div class="label">Цена, TON *</div><input id="f-price" inputmode="decimal" placeholder="0.35"></div>
+        <div><div class="label">Комиссия ${CFG.commission}%</div><input disabled value="учтётся в продаже"></div>
+      </div>
+      <div id="up-preview" style="margin-top:8px"></div>
+      <button class="btn btn-p" id="f-submit">Отправить на модерацию</button>
+      <div style="color:var(--muted2);font-size:11.5px;margin-top:10px;text-align:center">Выставляя работу, ты подтверждаешь авторство</div>
+    </div>`;
+  const typeChips = view.querySelector('#f-type'), catChips = view.querySelector('#f-cat');
+  [typeChips, catChips].forEach(box => box.querySelectorAll('.chip').forEach(ch => ch.onclick = () => {
+    box.querySelectorAll('.chip').forEach(c=>c.classList.remove('on')); ch.classList.add('on');
+    if (box === typeChips) view.querySelector('#phys-extra').style.display = ch.dataset.v === 'physical' ? 'block' : 'none';
+  }));
+  const drop = view.querySelector('#drop'), file = view.querySelector('#file');
+  drop.onclick = () => file.click();
+  file.onchange = () => {
+    const f = file.files[0]; if (!f) return; upImage = f;
+    drop.innerHTML = `<img src="${URL.createObjectURL(f)}">Фото выбрано — нажми, чтобы заменить`;
+  };
+  view.querySelector('#f-submit').onclick = async () => {
+    if (!upImage) return toast('Выбери фото работы');
+    const fd = new FormData();
+    fd.append('image', upImage);
+    fd.append('title', view.querySelector('#f-title').value.trim());
+    fd.append('description', view.querySelector('#f-desc').value.trim());
+    fd.append('art_type', typeChips.querySelector('.on').dataset.v);
+    fd.append('category', catChips.querySelector('.on').dataset.v);
+    fd.append('medium', (view.querySelector('#f-medium')||{}).value || '');
+    fd.append('location', (view.querySelector('#f-loc')||{}).value || '');
+    fd.append('price', view.querySelector('#f-price').value.trim());
+    try {
+      const r = await api('/api/artworks', { method:'POST', body: fd });
+      toast('Отправлено на модерацию ⏳');
+      navigate('#/profile');
+    } catch(e){ toast(e.message); }
+  };
+}
+
+/* ============ PROFILE ============ */
+let profTab = 'works';
+function vProfile(view){
+  if (!ME) return renderLogin();
+  view.innerHTML = `
+    <div class="top"><div class="logo-font">ПРОФИЛЬ<small>${esc(ME.username?'@'+ME.username:'твой аккаунт')}</small></div>
+      ${ME._admin?`<div class="ico" onclick="navigate('#/admin')" style="color:#d9b36a">🛠</div>`:''}</div>
+    <div class="wrap">
+      <div class="panel" style="text-align:center">
+        <img class="avatar-lg" src="${esc(ME.photo_url||'')}" onerror="this.style.opacity=.15">
+        <div class="p-name">${esc(ME.artist_name || ME.first_name)} ${ME.is_artist?'<span style="font-size:12px;color:var(--muted)">✓ художник</span>':''}</div>
+        <div class="p-sub">${esc(ME.artist_city||'')}${ME.username?' · @'+esc(ME.username):''}</div>
+        <div class="stat3">
+          <div><b>${fmtTon(ME.balance_milli)}</b><span>баланс, TON</span></div>
+          <div><b>${ME.wallet_address?(ME.wallet_verified?'✓':'⏳'):'—'}</b><span>кошелёк</span></div>
+          <div><b style="cursor:pointer" onclick="navigate('#/support')">💬</b><span>поддержка</span></div>
+        </div>
+      </div>
+      <div class="tabs">
+        <div class="tab ${profTab==='works'?'on':''}" data-t="works">Работы</div>
+        <div class="tab ${profTab==='nft'?'on':''}" data-t="nft">NFT</div>
+        <div class="tab ${profTab==='sales'?'on':''}" data-t="sales">Продажи</div>
+        <div class="tab ${profTab==='edit'?'on':''}" data-t="edit">Профиль</div>
+      </div>
+      <div id="prof-body"><div class="spin"></div></div>
+    </div>`;
+  view.querySelectorAll('.tab').forEach(t => t.onclick = () => { profTab = t.dataset.t; vProfile(view); });
+  loadProfileTab(view);
+}
+async function loadProfileTab(view){
+  const body = view.querySelector('#prof-body'); if (!body) return;
+  if (profTab === 'works') {
+    const r = await api('/api/artworks/mine');
+    body.innerHTML = r.items.length ? `<div class="grid">${r.items.map(a=>`
+      <div class="card" data-id="${a.id}">
+        <div style="position:relative"><img src="${esc(a.image_path)}">
+        <span class="st ${a.status}" style="position:absolute;top:8px;left:8px">${a.status==='approved'?'✓ в галерее':a.status==='pending'?'⏳ модерация':'✗ отклонено'}</span></div>
+        <div class="in"><div class="t">${esc(a.title)}</div><div class="a">${fmtTon(a.price_milli)} TON</div></div></div>`).join('')}</div>
+      <button class="btn btn-s" style="margin-top:14px" onclick="navigate('#/upload')">+ Выложить работу</button>` :
+      `<div class="empty"><div class="e">▲</div>Работ пока нет</div><button class="btn btn-p" onclick="navigate('#/upload')">Выложить первую работу</button>`;
+    body.querySelectorAll('.card').forEach(c => c.onclick = () => navigate('#/art/'+c.dataset.id));
+  } else if (profTab === 'nft') {
+    const r = await api('/api/nfts/mine');
+    body.innerHTML = r.items.length ? `<div class="grid">${r.items.map(n=>`
+      <div class="card" data-id="${n.artwork_id}"><div style="position:relative"><img src="${esc(n.image_path)}"><span class="type-tag nft" style="top:8px;left:8px">NFT</span></div>
+      <div class="in"><div class="t">${esc(n.title)}</div><div class="a mono">${esc(n.token_str)}</div></div></div>`).join('')}</div>` :
+      `<div class="empty"><div class="e">◇</div>NFT пока нет. Купи работу в галерее — токен появится здесь.</div>`;
+    body.querySelectorAll('.card').forEach(c => c.onclick = () => navigate('#/art/'+c.dataset.id));
+  } else if (profTab === 'sales') {
+    navigate('#/orders'); return;
+  } else {
+    body.innerHTML = `
+      <div class="label">Имя художника</div><input id="e-name" value="${esc(ME.artist_name||ME.first_name||'')}">
+      <div class="label">Город</div><input id="e-city" value="${esc(ME.artist_city||'')}" placeholder="Санкт-Петербург">
+      <div class="label">О себе</div><textarea id="e-bio" placeholder="Работаю с текстилем, шумом и памятью…">${esc(ME.artist_bio||'')}</textarea>
+      <button class="btn btn-p" id="e-save">Сохранить</button>
+      <div class="sec" style="margin-top:26px"><h3>Кошелёк (грам / TON)</h3><a onclick="navigate('#/wallet')">открыть →</a></div>
+      <div class="mono" style="color:var(--muted);font-size:12px">${ME.wallet_address?esc(ME.wallet_address):'Кошелёк не привязан'}</div>
+      <button class="btn btn-s" style="margin-top:18px" id="e-logout">Выйти</button>`;
+    body.querySelector('#e-save').onclick = async () => {
+      try {
+        const r = await api('/api/me/profile', { method:'POST', body:{ artist_name: body.querySelector('#e-name').value.trim(), artist_city: body.querySelector('#e-city').value.trim(), artist_bio: body.querySelector('#e-bio').value.trim() }});
+        ME = r.user; toast('Сохранено'); vProfile(view);
+      } catch(e){ toast(e.message); }
+    };
+    body.querySelector('#e-logout').onclick = async () => { await api('/api/auth/logout',{method:'POST'}); location.reload(); };
+  }
+}
+
+/* ============ WALLET ============ */
+async function vWallet(view){
+  let st; try { st = await api('/api/wallet/status'); } catch(e){ return renderLogin(); }
+  view.innerHTML = `
+    <div class="back-head"><div class="ico" onclick="history.back()">←</div><div class="tt">Кошелёк · грам</div></div>
+    <div class="wrap">
+      <div class="panel">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="font-size:26px">${st.verified?'✅':'⏳'}</div>
+          <div><b>${st.verified?'Кошелёк привязан и верифицирован':'Кошелёк привязан, ждем подпись'}</b>
+          <div class="p-sub">${st.address?`<span class="mono">${esc(st.address)}</span>`:'Адрес не привязан'}</div></div>
+        </div>
+        ${st.balance!=null?`<div style="margin-top:10px;color:var(--muted);font-size:13px">Баланс кошелька: <b style="color:var(--text)">${(st.balance/1e9).toFixed(2)} TON</b></div>`:''}
+      </div>
+      <div class="escrow-note"><span>🔗</span><span>Привязка через <b>TON API (tonapi.io)</b>: подтверди, что кошелёк твой — переводом с код-фразой или подписью. Выплаты за продажи приходят на этот адрес.</span></div>
+      <div class="label">TON-адрес (EQ… / UQ…)</div>
+      <input id="w-addr" class="mono" placeholder="UQ…" value="${esc(st.address||'')}">
+      <button class="btn btn-p" id="w-connect">Привязать адрес</button>
+      <div id="w-step2" style="display:none">
+        <div class="label">Шаг 1 — код-фраза</div>
+        <div class="panel mono" id="w-puzzle"></div>
+        ${st.treasury?`<div class="label">Шаг 2 — отправь любой перевод (даже 0.01 TON) на адрес площадки с этой фразой в комментарии</div>
+        <div class="panel mono" style="color:#cfc8b8">${esc(st.treasury)}</div>`:''}
+        <button class="btn btn-p" id="w-verify-tx">Я отправил перевод — проверить через блокчейн</button>
+        <div class="label">…или подпись из кошелька</div>
+        <input id="w-sig" placeholder="подпись сообщения">
+        <button class="btn btn-s" id="w-verify">Подтвердить подписью</button>
+        ${CFG.demo?`<button class="btn btn-s" id="w-demo">Демо-подтверждение</button>`:''}
+      </div>
+      ${st.address?`<button class="btn btn-s" id="w-unbind" style="margin-top:14px">Отвязать кошелёк</button>`:''}
+    </div>`;
+  const showPuzzle = p => { view.querySelector('#w-step2').style.display='block'; view.querySelector('#w-puzzle').textContent = p; };
+  view.querySelector('#w-connect').onclick = async () => {
+    try {
+      const r = await api('/api/wallet/connect', { method:'POST', body:{ address: view.querySelector('#w-addr').value.trim() }});
+      toast('Адрес сохранён — подтверди подписью'); showPuzzle(r.puzzle);
+    } catch(e){ toast(e.message); }
+  };
+  const doVerify = async sig => {
+    try {
+      const r = await api('/api/wallet/verify', { method:'POST', body:{ signature: sig } });
+      toast(r.demo ? 'Кошелёк привязан (демо-режим)' : 'Кошелёк верифицирован ✅');
+      vWallet(view);
+    } catch(e){ toast(e.message); }
+  };
+  const doVerifyTx = async () => {
+    try {
+      await api('/api/wallet/verify-tx', { method:'POST', body:{} });
+      toast('Кошелёк верифицирован через блокчейн ✅');
+      vWallet(view);
+    } catch(e){ toast(e.message); }
+  };
+  view.querySelector('#w-verify-tx').onclick = doVerifyTx;
+  view.querySelector('#w-verify').onclick = () => doVerify(view.querySelector('#w-sig').value.trim());
+  if (CFG.demo) view.querySelector('#w-demo').onclick = () => doVerify('demo');
+  const un = view.querySelector('#w-unbind');
+  if (un) un.onclick = async () => { await api('/api/wallet/unbind',{method:'POST'}); toast('Кошелёк отвязан'); vWallet(view); };
+}
+
+/* ============ ORDERS ============ */
+const STEPS = { created:0, paid:1, shipped:2, completed:3 };
+async function vOrders(view){
+  let r; try { r = await api('/api/orders'); } catch(e){ return renderLogin(); }
+  view.innerHTML = `
+    <div class="top"><div class="logo-font">ЗАКАЗЫ<small>покупки и продажи</small></div>
+    <div class="ico" onclick="navigate('#/support')">✉️</div></div>
+    <div class="wrap">
+      ${r.items.length? r.items.map(o=>{
+        const role = o.role === 'buy' ? 'покупка' : 'продажа';
+        const si = STEPS[o.status]; const isPhys = o.kind==='physical';
+        return `<div class="order">
+          <div class="hd"><span class="o-id">#${o.id} · ${role}</span><span class="st ${o.status}">${statusRu(o.status)}</span></div>
+          <div class="row"><img src="${esc(o.image_path)}">
+            <div style="flex:1"><div class="t">${esc(o.title)}</div>
+            <div class="s">${isPhys?'📦 физическая работа':'◆ NFT'} · ${fmtTon(o.amount_milli)} TON</div></div></div>
+          ${isPhys?`<div class="stepper">
+            ${['оплачено','в гаранте','отправлено','получено'].map((s,i)=>`<div class="step ${si>=i?'done':''}"><div class="dot"></div>${s}</div>`).join('')}
+          </div>`:''}
+          ${o.tracking?`<div class="s" style="margin-top:6px">Трек: <span class="mono">${esc(o.tracking)}</span></div>`:''}
+          ${o.role==='buy' && o.status==='created' ? `<div class="btnrow"><button class="btn btn-p" data-pay="${o.id}">${CFG.payments?'Оплатить':'Оплатить (демо)'}</button></div>`:''}
+          ${o.role==='sell' && isPhys && o.status==='paid' ? `
+            <div class="label" style="margin-top:8px">Отправить работу</div>
+            <div style="display:flex;gap:8px"><input id="tr-${o.id}" placeholder="трек-номер / способ доставки">
+            <button class="btn btn-p" style="width:auto;padding:12px 18px" data-ship="${o.id}">OK</button></div>`:''}
+          ${o.role==='buy' && isPhys && (o.status==='shipped'||o.status==='paid') ? `<div class="btnrow"><button class="btn btn-p" data-confirm="${o.id}">Я получил работу — открыть гаранта</button></div>`:''}
+          ${o.status==='completed' && o.role==='sell' ? `<div class="s" style="margin-top:8px;color:var(--ok)">Выплата ${fmtTon(o.payout_milli)} TON зачислена (комиссия ${CFG.commission}% учтена)</div>`:''}
+          <div class="btnrow"><button class="btn btn-s" data-open="${o.id}">История сделки</button></div>
+        </div>`;}).join('') : `<div class="empty"><div class="e">🗿</div>Заказов пока нет</div>`}
+    </div>`;
+  view.querySelectorAll('[data-pay]').forEach(b => b.onclick = async () => {
+    try {
+      const r = await api(`/api/orders/${b.dataset.pay}/pay`, { method:'POST', body:{} });
+      if (r.pay_url) { tg && tg.openLink ? tg.openLink(r.pay_url) : (location.href = r.pay_url); toast('Счёт открыт — оплати в TON'); }
+      else { toast('Оплачено (демо): ' + (r.order.kind === 'physical' ? 'средства в гаранте 🛡' : 'NFT твой ◆')); }
+      vOrders(view);
+    } catch(e){ toast(e.message); }
+  });
+  view.querySelectorAll('[data-ship]').forEach(b => b.onclick = async () => {
+    try {
+      await api(`/api/orders/${b.dataset.ship}/ship`, { method:'POST', body:{ tracking: view.querySelector('#tr-'+b.dataset.ship).value.trim() } });
+      toast('Отмечено как отправленное'); vOrders(view);
+    } catch(e){ toast(e.message); }
+  });
+  view.querySelectorAll('[data-confirm]').forEach(b => b.onclick = async () => {
+    try {
+      await api(`/api/orders/${b.dataset.confirm}/confirm`, { method:'POST', body:{} });
+      toast('Сделка завершена, гаранта открыта 🤝'); vOrders(view);
+    } catch(e){ toast(e.message); }
+  });
+  view.querySelectorAll('[data-open]').forEach(b => b.onclick = () => orderSheet(r.items.find(x=>x.id==b.dataset.open)));
+}
+function statusRu(s){ return ({created:'не оплачен',paid:'в гаранте',shipped:'отправлено',completed:'завершено',cancelled:'отменён',refunded:'возврат'})[s]||s; }
+function orderSheet(o){
+  api('/api/orders/'+o.id).then(r => {
+    const bg = document.createElement('div'); bg.className='sheet-bg';
+    bg.innerHTML = `<div class="sheet">
+      <h3>Заказ #${o.id} · ${statusRu(o.status)}</h3>
+      ${(r.events||[]).map(e=>`<div style="display:flex;gap:10px;margin-bottom:10px;font-size:13px">
+        <div style="color:var(--muted2);flex:none;width:38px">${tmStr(e.created_at)}</div>
+        <div>${esc(e.note||e.status)}</div></div>`).join('')}
+      <button class="btn btn-s" onclick="this.closest('.sheet-bg').remove()">Закрыть</button></div>`;
+    document.body.appendChild(bg);
+    bg.onclick = e => { if (e.target===bg) bg.remove(); };
+  });
+}
+
+/* ============ SUPPORT ============ */
+let supportTimer = null;
+async function vSupport(view){
+  let r; try { r = await api('/api/support'); } catch(e){ return renderLogin(); }
+  view.innerHTML = `
+    <div class="back-head"><div class="ico" onclick="navigate('#/profile')">←</div>
+      <div><div class="tt">Поддержка АРТНАБЕГ</div><div class="p-sub">отвечаем в боте и здесь</div></div></div>
+    <div class="view chat" id="chat" style="flex:1">
+      ${(r.messages||[]).map(m=>msgHtml(m)).join('') || '<div class="msg sys">Напиши нам — ответит живой человек через бота</div>'}
+    </div>
+    <div style="position:fixed;bottom:0;left:0;right:0;z-index:31;display:flex;gap:8px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:rgba(15,15,15,.97);border-top:1px solid var(--line)">
+      <input id="s-text" placeholder="Сообщение…" style="border-radius:100px">
+      <button class="btn btn-p" style="width:auto;padding:12px 20px;margin:0" id="s-send">➤</button>
+    </div>`;
+  const chat = view.querySelector('#chat');
+  const send = async () => {
+    const inp = view.querySelector('#s-text'); const text = inp.value.trim(); if (!text) return;
+    inp.value = '';
+    const rr = await api('/api/support', { method:'POST', body:{ text } }).catch(e=>{ toast(e.message); return null; });
+    if (rr) { chat.insertAdjacentHTML('beforeend', msgHtml(rr.message)); chat.scrollTop = chat.scrollHeight; }
+  };
+  view.querySelector('#s-send').onclick = send;
+  view.querySelector('#s-text').onkeydown = e => { if (e.key==='Enter') send(); };
+  chat.scrollTop = chat.scrollHeight;
+  clearInterval(supportTimer);
+  supportTimer = setInterval(async () => {
+    if (!document.body.contains(chat)) return clearInterval(supportTimer);
+    const rr = await api('/api/support').catch(()=>null);
+    if (rr && rr.messages && rr.messages.length !== chat.children.length) {
+      chat.innerHTML = rr.messages.map(msgHtml).join(''); chat.scrollTop = chat.scrollHeight;
+    }
+  }, 5000);
+}
+function msgHtml(m){
+  const t = `<div class="tm">${tmStr(m.created_at)}</div>`;
+  if (m.sender === 'admin') return `<div class="msg admin">${esc(m.text)}${t}</div>`;
+  return `<div class="msg user">${esc(m.text)}${t}</div>`;
+}
+
+/* ============ ADMIN ============ */
+let admTab = 'mod';
+async function vAdmin(view){
+  if (!ME || !ME._admin) { view.innerHTML = `<div class="empty"><div class="e">⛔</div>Только для админа<br><small>Админ задаётся в ADMIN_ID в переменных окружения</small></div>`; return; }
+  let d; try { d = await api('/api/admin/overview'); } catch(e){ view.innerHTML=`<div class="empty">${esc(e.message)}</div>`; return; }
+  view.innerHTML = `
+    <div class="top"><div class="logo-font">АДМИНКА<small>АРТНАБЕГ · панель</small></div></div>
+    <div class="tabs">
+      <div class="tab ${admTab==='mod'?'on':''}" data-t="mod">Модерация ${d.stats.pending?`(${d.stats.pending})`:''}</div>
+      <div class="tab ${admTab==='orders'?'on':''}" data-t="orders">Сделки</div>
+      <div class="tab ${admTab==='tickets'?'on':''}" data-t="tickets">Тикеты</div>
+      <div class="tab ${admTab==='stats'?'on':''}" data-t="stats">Сводка</div>
+    </div>
+    <div class="wrap" id="adm-body"></div>`;
+  view.querySelectorAll('.tab').forEach(t => t.onclick = () => { admTab = t.dataset.t; vAdmin(view); });
+  const body = view.querySelector('#adm-body');
+  if (admTab === 'mod') {
+    body.innerHTML = d.pending.length ? d.pending.map(a=>`
+      <div class="mod-card"><img src="${esc(a.image_path)}">
+        <div class="in"><div class="t">«${esc(a.title)}» · #${a.id}</div>
+        <div class="a">${esc(a.artist_name||'')} · ${fmtTon(a.price_milli)} TON · ${a.art_type==='physical'?'физическая':'NFT'}</div>
+        ${a.description?`<div style="font-size:12.5px;color:var(--muted)">${esc(a.description.slice(0,140))}</div>`:''}
+        <div class="btnrow">
+          <button class="btn btn-p" data-ok="${a.id}">✓ Опубликовать</button>
+          <button class="btn btn-s" data-no="${a.id}">✕ Отклонить</button>
+        </div></div></div>`).join('') : `<div class="empty"><div class="e">✓</div>Очередь пуста</div>`;
+    body.querySelectorAll('[data-ok]').forEach(b => b.onclick = () => moderate(b.dataset.ok, 'approved', '', view));
+    body.querySelectorAll('[data-no]').forEach(b => b.onclick = () => {
+      const reason = prompt('Причина отклонения:'); if (reason === null) return;
+      moderate(b.dataset.no, 'rejected', reason, view);
+    });
+  } else if (admTab === 'orders') {
+    body.innerHTML = d.orders.length ? d.orders.map(o=>`
+      <div class="order">
+        <div class="hd"><span class="o-id">#${o.id} · ${esc(o.title)}</span><span class="st ${o.status}">${statusRu(o.status)}</span></div>
+        <div class="s">${fmtTon(o.amount_milli)} TON · комс. ${fmtTon(o.commission_milli)} · выплата ${fmtTon(o.payout_milli)}</div>
+        <div class="s">${esc(o.buyer_name||'')} → ${esc(o.seller_name||'')} · ${o.kind==='physical'?'физ.':'NFT'}</div>
+        ${['paid','shipped'].includes(o.status)?`<div class="btnrow">
+          <button class="btn btn-p" data-done="${o.id}">Завершить (открыть гаранта)</button>
+          <button class="btn btn-s" data-refund="${o.id}">Возврат</button></div>`:''}
+      </div>`).join('') : `<div class="empty">Сделок нет</div>`;
+    body.querySelectorAll('[data-done]').forEach(b => b.onclick = async () => {
+      await api(`/api/admin/orders/${b.dataset.done}/status`, { method:'POST', body:{ status:'completed' } }).catch(e=>toast(e.message));
+      toast('Завершено, выплата зачислена'); vAdmin(view);
+    });
+    body.querySelectorAll('[data-refund]').forEach(b => b.onclick = async () => {
+      await api(`/api/admin/orders/${b.dataset.refund}/status`, { method:'POST', body:{ status:'refunded' } }).catch(e=>toast(e.message));
+      toast('Возврат оформлен'); vAdmin(view);
+    });
+  } else if (admTab === 'tickets') {
+    body.innerHTML = d.threads.length ? d.threads.map(t=>`
+      <div class="order" style="cursor:pointer" data-th="${t.id}">
+        <div class="hd"><span class="o-id">#${t.id} · ${esc(t.username?'@'+t.username:t.first_name||'')}</span>
+        <span class="st ${t.status==='answered'?'completed':'paid'}">${t.status==='answered'?'отвечен':'открыт'}</span></div>
+        <div class="s" style="color:var(--text)">${esc((t.last_text||'').slice(0,90))}</div>
+        <div class="s">${new Date(t.last_message_at).toLocaleString('ru-RU')}</div>
+      </div>`).join('') : `<div class="empty">Тикетов нет</div>`;
+    body.querySelectorAll('[data-th]').forEach(el => el.onclick = () => ticketSheet(el.dataset.th, view));
+  } else {
+    const s = d.stats;
+    body.innerHTML = `
+      <div class="statgrid">
+        <div class="panel"><b>${s.users}</b><span>юзеров</span></div>
+        <div class="panel"><b>${s.pending}</b><span>на модерации</span></div>
+        <div class="panel"><b>${s.approved}</b><span>в галерее</span></div>
+        <div class="panel"><b>${s.sold}</b><span>продано</span></div>
+        <div class="panel"><b>${fmtTon(s.volume)}</b><span>оборот, TON</span></div>
+        <div class="panel"><b>${fmtTon(s.commission)}</b><span>комиссия площадки</span></div>
+        <div class="panel"><b>${fmtTon(s.escrow)}</b><span>заморожено в гаранте</span></div>
+        <div class="panel"><b>${s.threads}</b><span>открытых тикетов</span></div>
+      </div>
+      <div class="escrow-note" style="margin-top:14px"><span>ℹ</span><span>Комиссия площадки: <b>${d.commission}%</b>. Публикация работ — только через модерацию. Ответы поддержки — из бота (reply на тикет).</span></div>`;
+  }
+}
+async function moderate(id, status, reason, view){
+  try {
+    await api(`/api/admin/artworks/${id}/moderate`, { method:'POST', body:{ status, reason } });
+    toast(status === 'approved' ? 'Опубликовано в галерее ✓' : 'Отклонено, автор уведомлён');
+    vAdmin(view);
+  } catch(e){ toast(e.message); }
+}
+async function ticketSheet(threadId, view){
+  const r = await api('/api/support').catch(()=>null); // не юзерский тред — грузим админский список сообщений отдельно
+  const bg = document.createElement('div'); bg.className = 'sheet-bg';
+  bg.innerHTML = `<div class="sheet" style="max-height:80vh;overflow-y:auto">
+    <h3>Тикет #${threadId}</h3><div id="th-msgs" style="margin:12px 0">…</div>
+    <div style="display:flex;gap:8px"><input id="th-text" placeholder="Ответ пользователю…">
+    <button class="btn btn-p" style="width:auto;padding:12px 18px;margin:0" id="th-send">➤</button></div>
+    <button class="btn btn-s" style="margin-top:10px" onclick="this.closest('.sheet-bg').remove()">Закрыть</button></div>`;
+  document.body.appendChild(bg);
+  bg.onclick = e => { if (e.target === bg) bg.remove(); };
+  async function loadMsgs(){
+    const d = await fetch(`/api/support`).then(x=>x.json()).catch(()=>null);
+    // для админа отдельный эндпоинт не делаем — покажем через admin overview нельзя; используем прямой запрос сообщений треда:
+    const j = await fetch(`/api/admin/support/${threadId}/messages`).then(x=>x.json()).catch(()=>null);
+    if (j && j.messages) bg.querySelector('#th-msgs').innerHTML = j.messages.map(m=>msgHtml(m)).join('');
+  }
+  loadMsgs();
+  bg.querySelector('#th-send').onclick = async () => {
+    const text = bg.querySelector('#th-text').value.trim(); if (!text) return;
+    try {
+      await api(`/api/admin/support/${threadId}/reply`, { method:'POST', body:{ text } });
+      bg.querySelector('#th-text').value = ''; loadMsgs(); toast('Ответ отправлен (бот + мини-апп)');
+    } catch(e){ toast(e.message); }
+  };
+}
+
+/* util: view width fix for chat */
+document.addEventListener('input', e => { /* noop */ });
+</script>
+</body>
+</html>

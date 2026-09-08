@@ -1,0 +1,25 @@
+{
+  "name": "artnabeg",
+  "version": "1.0.0",
+  "description": "АРТНАБЕГ — Telegram Mini App: NFT-галерея и маркетплейс независимых художников",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "seed": "node src/seed.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/horaanlika-droid/artnabeg.git"
+  },
+  "bugs": {
+    "url": "https://github.com/horaanlika-droid/artnabeg/issues"
+  },
+  "homepage": "https://github.com/horaanlika-droid/artnabeg#readme",
+  "dependencies": {
+    "better-sqlite3": "^13.0.3",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "grammy": "^1.46.0",
+    "multer": "^2.3.0"
+  }
+}
